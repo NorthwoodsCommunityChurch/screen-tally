@@ -11,7 +11,8 @@ final class AppSettings {
 
     private enum Keys {
         static let port = "tslPort"
-        static let monitoredSourceIndex = "monitoredSourceIndex"
+        static let monitoredSourceIndex = "monitoredSourceIndex"  // Legacy single source
+        static let monitoredSourceIndices = "monitoredSourceIndices"  // New multi-source
         static let borderThickness = "borderThickness"
         static let showBorderOnPreview = "showBorderOnPreview"
         static let selectedScreenIndex = "selectedScreenIndex"
@@ -26,13 +27,22 @@ final class AppSettings {
         }
     }
 
-    /// The source index to monitor for tally (nil = none selected)
-    var monitoredSourceIndex: Int? {
+    /// The source indices to monitor for tally (empty = none selected)
+    var monitoredSourceIndices: Set<Int> {
         didSet {
-            if let index = monitoredSourceIndex {
-                defaults.set(index, forKey: Keys.monitoredSourceIndex)
+            let array = Array(monitoredSourceIndices)
+            defaults.set(array, forKey: Keys.monitoredSourceIndices)
+        }
+    }
+
+    /// Legacy single source support - returns first selected index or nil
+    var monitoredSourceIndex: Int? {
+        get { monitoredSourceIndices.first }
+        set {
+            if let index = newValue {
+                monitoredSourceIndices = [index]
             } else {
-                defaults.removeObject(forKey: Keys.monitoredSourceIndex)
+                monitoredSourceIndices = []
             }
         }
     }
@@ -80,11 +90,18 @@ final class AppSettings {
         self.showBorderOnPreview = defaults.bool(forKey: Keys.showBorderOnPreview)
         self.selectedScreenIndex = defaults.integer(forKey: Keys.selectedScreenIndex)
 
-        // Load optional source index
-        if defaults.object(forKey: Keys.monitoredSourceIndex) != nil {
-            self.monitoredSourceIndex = defaults.integer(forKey: Keys.monitoredSourceIndex)
+        // Load monitored source indices (with migration from legacy single source)
+        if let savedArray = defaults.array(forKey: Keys.monitoredSourceIndices) as? [Int] {
+            self.monitoredSourceIndices = Set(savedArray)
+        } else if defaults.object(forKey: Keys.monitoredSourceIndex) != nil {
+            // Migrate from legacy single source
+            let legacyIndex = defaults.integer(forKey: Keys.monitoredSourceIndex)
+            self.monitoredSourceIndices = [legacyIndex]
+            // Save in new format
+            defaults.set([legacyIndex], forKey: Keys.monitoredSourceIndices)
+            defaults.removeObject(forKey: Keys.monitoredSourceIndex)
         } else {
-            self.monitoredSourceIndex = nil
+            self.monitoredSourceIndices = []
         }
     }
 }

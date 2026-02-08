@@ -3,6 +3,7 @@ import SwiftUI
 struct MenuBarView: View {
     let tslListener: TSLListener
     @State private var settings = AppSettings.shared
+    @State private var updateManager = UpdateManager.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -41,50 +42,66 @@ struct MenuBarView: View {
             Divider()
 
             // Current Tally Display
-            if settings.monitoredSourceIndex != nil {
+            if !settings.monitoredSourceIndices.isEmpty {
                 HStack {
                     Text("Tally:")
                         .foregroundStyle(.secondary)
                     Text(tslListener.monitoredTally.label)
                         .foregroundStyle(tslListener.monitoredTally.swiftUIColor)
                         .fontWeight(.semibold)
+                    if settings.monitoredSourceIndices.count > 1 {
+                        Text("(\(settings.monitoredSourceIndices.count) sources)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
 
-            // Source Picker
+            // Source Picker (Multi-select)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Monitor Source:")
-                    .foregroundStyle(.secondary)
-
-                Picker("Source", selection: Binding(
-                    get: { settings.monitoredSourceIndex ?? -1 },
-                    set: { settings.monitoredSourceIndex = $0 == -1 ? nil : $0 }
-                )) {
-                    Text("None").tag(-1)
-                    ForEach(tslListener.sortedSources) { source in
-                        HStack {
-                            Text(source.displayName)
-                            if source.tally != .clear {
-                                Circle()
-                                    .fill(source.tally.swiftUIColor)
-                                    .frame(width: 8, height: 8)
-                            }
+                HStack {
+                    Text("Monitor Sources:")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    if !settings.monitoredSourceIndices.isEmpty {
+                        Button("Clear All") {
+                            settings.monitoredSourceIndices = []
                         }
-                        .tag(source.index)
+                        .buttonStyle(.plain)
+                        .font(.caption)
+                        .foregroundStyle(.blue)
                     }
                 }
-                .labelsHidden()
 
-                if tslListener.sortedSources.isEmpty && tslListener.isConnected {
-                    Text("Waiting for tally data...")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                if !tslListener.isConnected {
-                    Text("Connect to see available sources")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                if tslListener.sortedSources.isEmpty {
+                    if tslListener.isConnected {
+                        Text("Waiting for tally data...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Connect to see available sources")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 2) {
+                            ForEach(tslListener.sortedSources) { source in
+                                SourceToggleRow(
+                                    source: source,
+                                    isSelected: settings.monitoredSourceIndices.contains(source.index),
+                                    onToggle: {
+                                        if settings.monitoredSourceIndices.contains(source.index) {
+                                            settings.monitoredSourceIndices.remove(source.index)
+                                        } else {
+                                            settings.monitoredSourceIndices.insert(source.index)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 150)
                 }
             }
 
@@ -136,6 +153,57 @@ struct MenuBarView: View {
 
             Divider()
 
+            // Update Section
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("Version \(Version.current)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    if updateManager.isChecking {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Button("Check") {
+                            Task { await updateManager.checkForUpdates(force: true) }
+                        }
+                        .buttonStyle(.plain)
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                    }
+                }
+
+                if let version = updateManager.availableVersion {
+                    HStack {
+                        Text("Update available: \(version)")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        Spacer()
+                        if updateManager.isUpdating {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Installing...")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Button("Install") {
+                                Task { await updateManager.applyUpdate() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                        }
+                    }
+                }
+
+                if let error = updateManager.lastError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            Divider()
+
             // Debug Controls
             VStack(alignment: .leading, spacing: 8) {
                 Text("Debug")
@@ -179,6 +247,9 @@ struct MenuBarView: View {
         }
         .padding()
         .frame(width: 280)
+        .onAppear {
+            Task { await updateManager.checkForUpdates() }
+        }
     }
 
     private var connectionIndicator: some View {
@@ -214,5 +285,37 @@ struct MenuBarView: View {
             return "\(name) (Main)"
         }
         return name
+    }
+}
+
+// MARK: - Source Toggle Row
+
+private struct SourceToggleRow: View {
+    let source: SourceInfo
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? .blue : .secondary)
+                    .font(.system(size: 14))
+
+                Text(source.displayName)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                if source.tally != .clear {
+                    Circle()
+                        .fill(source.tally.swiftUIColor)
+                        .frame(width: 8, height: 8)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.vertical, 2)
     }
 }

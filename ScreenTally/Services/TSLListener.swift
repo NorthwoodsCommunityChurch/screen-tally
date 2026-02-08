@@ -33,13 +33,33 @@ final class TSLListener {
 
     // MARK: - Computed State
 
-    /// The tally state for the currently monitored source
+    /// The combined tally state for all monitored sources.
+    /// Priority: program/previewProgram > preview > clear
     var monitoredTally: TallyState {
-        guard let index = AppSettings.shared.monitoredSourceIndex,
-              let source = sources[index] else {
-            return .clear
+        let indices = AppSettings.shared.monitoredSourceIndices
+        guard !indices.isEmpty else { return .clear }
+
+        var hasProgram = false
+        var hasPreview = false
+
+        for index in indices {
+            guard let source = sources[index] else { continue }
+            switch source.tally {
+            case .program, .previewProgram:
+                hasProgram = true
+            case .preview:
+                hasPreview = true
+            case .clear:
+                break
+            }
         }
-        return source.tally
+
+        if hasProgram {
+            return hasPreview ? .previewProgram : .program
+        } else if hasPreview {
+            return .preview
+        }
+        return .clear
     }
 
     /// Sorted list of sources for the picker
