@@ -36,8 +36,8 @@ targets:
     info:
       path: LimbusLive/Info.plist
       properties:
-        CFBundleShortVersionString: "1.0.2"
-        CFBundleVersion: "1.0.2"
+        CFBundleShortVersionString: "1.0.3"
+        CFBundleVersion: "1.0.3"
         CFBundleDisplayName: Limbus Live
         LSUIElement: true
         NSHumanReadableCopyright: "Copyright 2025 Northwoods Community Church"

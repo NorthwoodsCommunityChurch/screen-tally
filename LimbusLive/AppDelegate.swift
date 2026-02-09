@@ -3,34 +3,36 @@ import Observation
 import Sparkle
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var tslListener: TSLListener!
-    private var statusBarController: StatusBarController!
-    private var borderOverlayController: BorderOverlayController!
+    @MainActor private var tslListener: TSLListener!
+    @MainActor private var statusBarController: StatusBarController!
+    @MainActor private var borderOverlayController: BorderOverlayController!
     private var observationTask: Task<Void, Never>?
 
     /// Sparkle updater controller - manages automatic update checks
-    let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true,
-        updaterDelegate: nil,
-        userDriverDelegate: nil
-    )
+    private var updaterController: SPUStandardUpdaterController!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Task { @MainActor in
+        DispatchQueue.main.async { [self] in
+            // Initialize Sparkle
+            updaterController = SPUStandardUpdaterController(
+                startingUpdater: true,
+                updaterDelegate: nil,
+                userDriverDelegate: nil
+            )
+
             // Initialize components
-            tslListener = TSLListener()
-            statusBarController = StatusBarController()
-            statusBarController.configure(tslListener: tslListener, updater: updaterController.updater)
-            borderOverlayController = BorderOverlayController()
+            MainActor.assumeIsolated {
+                statusBarController = StatusBarController()
+                tslListener = TSLListener()
+                statusBarController.configure(tslListener: tslListener, updater: updaterController.updater)
 
-            // Setup the border overlay window
-            borderOverlayController.setup()
+                borderOverlayController = BorderOverlayController()
+                borderOverlayController.setup()
 
-            // Start listening on configured port
-            tslListener.startListening(port: UInt16(AppSettings.shared.port))
+                tslListener.startListening(port: UInt16(AppSettings.shared.port))
 
-            // Observe tally changes
-            startObserving()
+                startObserving()
+            }
         }
     }
 

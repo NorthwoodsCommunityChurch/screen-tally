@@ -80,7 +80,7 @@ final class StatusBarController: NSObject {
 
         let color: NSColor
         if !isConnected {
-            color = .gray
+            color = .white
         } else {
             switch tally {
             case .program, .previewProgram:
@@ -88,7 +88,7 @@ final class StatusBarController: NSObject {
             case .preview:
                 color = .systemGreen
             case .clear:
-                color = .gray
+                color = .white
             }
         }
 
@@ -124,10 +124,6 @@ final class StatusBarController: NSObject {
 
     private func showContextMenu() {
         let menu = NSMenu()
-
-        menu.addItem(NSMenuItem(title: "Check for Updates...", action: #selector(checkForUpdates), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ","))
-        menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Limbus Live", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         statusItem.menu = menu
@@ -136,15 +132,6 @@ final class StatusBarController: NSObject {
         DispatchQueue.main.async { [weak self] in
             self?.statusItem.menu = nil
         }
-    }
-
-    @objc private func openSettings() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        NSApp.activate(ignoringOtherApps: true)
-    }
-
-    @objc private func checkForUpdates() {
-        updater?.checkForUpdates()
     }
 
     // MARK: - Cleanup

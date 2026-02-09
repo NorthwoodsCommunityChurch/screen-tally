@@ -10,7 +10,7 @@ struct MenuBarView: View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
             HStack {
-                Text("Screen Tally")
+                Text("Limbus Live")
                     .font(.headline)
                 Spacer()
                 connectionIndicator
@@ -119,6 +119,9 @@ struct MenuBarView: View {
 
             // Quick Settings
             Toggle("Show border on Preview", isOn: $settings.showBorderOnPreview)
+                .toggleStyle(.checkbox)
+
+            Toggle("Open at Login", isOn: $settings.launchAtLogin)
                 .toggleStyle(.checkbox)
 
             HStack {

@@ -28,8 +28,12 @@ struct SettingsView: View {
                 }
             }
 
+            Section("General") {
+                Toggle("Open at Login", isOn: $settings.launchAtLogin)
+            }
+
             Section("About") {
-                Text("Screen Tally displays a colored border around your screen based on tally data from a Ross Carbonite switcher.")
+                Text("Limbus Live displays a colored border around your screen based on tally data from a Ross Carbonite switcher.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

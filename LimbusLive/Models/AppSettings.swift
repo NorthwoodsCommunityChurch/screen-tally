@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import ServiceManagement
 
 /// Manages persistent app settings via UserDefaults
 @Observable
@@ -65,6 +66,24 @@ final class AppSettings {
     var selectedScreenIndex: Int {
         didSet {
             defaults.set(selectedScreenIndex, forKey: Keys.selectedScreenIndex)
+        }
+    }
+
+    /// Launch app at login
+    var launchAtLogin: Bool {
+        get {
+            SMAppService.mainApp.status == .enabled
+        }
+        set {
+            do {
+                if newValue {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                NSLog("Failed to \(newValue ? "enable" : "disable") launch at login: \(error)")
+            }
         }
     }
 

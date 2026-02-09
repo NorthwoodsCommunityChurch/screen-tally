@@ -3,7 +3,7 @@ import Foundation
 /// Application version information
 enum Version {
     /// Current app version (semantic versioning)
-    static let current = "1.0.1"
+    static let current = "1.0.3"
 
     /// GitHub repository for update checks
     static let githubOwner = "NorthwoodsCommunityChurch"
