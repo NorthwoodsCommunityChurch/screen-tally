@@ -3,14 +3,14 @@ import Foundation
 /// Application version information
 enum Version {
     /// Current app version (semantic versioning)
-    static let current = "1.3.0"
+    static let current = "1.0.1"
 
     /// GitHub repository for update checks
     static let githubOwner = "NorthwoodsCommunityChurch"
-    static let githubRepo = "screen-tally"
+    static let githubRepo = "limbus-live"
 
     /// Asset name pattern for this app
-    static let assetPrefix = "ScreenTally-"
+    static let assetPrefix = "LimbusLive-"
 
     /// Compare two semantic version strings
     /// Returns: negative if v1 < v2, positive if v1 > v2, zero if equal

@@ -1,8 +1,8 @@
-# Screen Tally
+# Limbus Live
 
 A native macOS menu bar app that displays a colored border around your screen based on tally data from a Ross Carbonite video switcher. Helps ProPresenter operators know when they're live.
 
-![Screen Tally Screenshot](docs/images/screenshot.png)
+![Limbus Live Screenshot](docs/images/screenshot.png)
 
 ## Features
 
@@ -23,16 +23,16 @@ A native macOS menu bar app that displays a colored border around your screen ba
 
 ## Installation
 
-1. Download `ScreenTally-v1.0.0-aarch64.zip` from [Releases](../../releases)
+1. Download `LimbusLive-v1.0.0-aarch64.zip` from [Releases](../../releases)
 2. Extract the zip file
-3. Move `Screen Tally.app` to your Applications folder
+3. Move `Limbus Live.app` to your Applications folder
 4. Right-click the app and select "Open" (required for first launch due to ad-hoc signing)
 
 ## Usage
 
 ### Quick Start
 
-1. Launch Screen Tally - a gray circle appears in your menu bar
+1. Launch Limbus Live - a gray circle appears in your menu bar
 2. Click the menu bar icon to open the settings popover
 3. Configure your TSL port (default: 5201)
 4. On your Ross Carbonite, configure DashBoard to send TSL 5.0 data to this Mac's IP address on port 5201
@@ -64,14 +64,14 @@ Requires Xcode 16+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
 # Clone the repository
-git clone https://github.com/NorthwoodsCommunityChurch/screen-tally.git
-cd screen-tally
+git clone https://github.com/NorthwoodsCommunityChurch/limbus-live.git
+cd limbus-live
 
 # Generate Xcode project
 xcodegen generate
 
 # Build
-xcodebuild -scheme ScreenTally -configuration Release build
+xcodebuild -scheme LimbusLive -configuration Release build
 
 # The app will be in DerivedData
 ```
@@ -79,10 +79,10 @@ xcodebuild -scheme ScreenTally -configuration Release build
 ## Project Structure
 
 ```
-MacOS Screen Tally/
+Limbus Live/
 ├── Project.yml                    # XcodeGen configuration
-├── ScreenTally/
-│   ├── ScreenTallyApp.swift       # App entry point
+├── LimbusLive/
+│   ├── LimbusLiveApp.swift        # App entry point
 │   ├── AppDelegate.swift          # Lifecycle management
 │   ├── Models/
 │   │   ├── TallyState.swift       # Tally state enum
@@ -90,7 +90,6 @@ MacOS Screen Tally/
 │   ├── Services/
 │   │   └── TSLListener.swift      # TSL 5.0/3.1 TCP listener
 │   ├── Views/
-│   │   ├── MenuBarView.swift      # Popover UI
 │   │   └── SettingsView.swift     # Settings window
 │   └── Controllers/
 │       ├── StatusBarController.swift    # Menu bar management
@@ -101,7 +100,7 @@ MacOS Screen Tally/
 
 ## How It Works
 
-Screen Tally acts as a TSL UMD server. The Ross Carbonite connects to it as a TCP client and sends tally state updates for all sources. The app:
+Limbus Live acts as a TSL UMD server. The Ross Carbonite connects to it as a TCP client and sends tally state updates for all sources. The app:
 
 1. Listens on a configurable TCP port
 2. Auto-detects TSL 5.0 vs 3.1 protocol framing
